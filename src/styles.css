@@ -147,10 +147,11 @@
 .footer-link { display: inline-flex; align-items: center; gap: 8px; transition: color 200ms ease; }
 .footer-link:hover { color: var(--primary); }
 .footer-link:focus-visible { outline: 2px solid var(--ring); outline-offset: 5px; }
+.site-footer a[href^="mailto:"], .site-footer a[href^="tel:"] { display: flex; width: fit-content; }
 .hero-headline { text-shadow: 0 2px 0 color-mix(in oklab, var(--foreground) 10%, transparent); }
 .dark .hero-photo { opacity: 0.9; }
 .bg-gradient-primary { color: var(--brand-foreground); }
-@media (max-width: 1023px) {
+@media (max-width: 1100px) {
   .hero-network { width: 43%; right: 0; }
   .hero-headline { font-size: 64px; }
   .hero-scene > .relative { padding-top: 120px; padding-bottom: 36px; }
