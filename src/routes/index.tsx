@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   animate,
   AnimatePresence,
+  MotionConfig,
   motion,
   useInView,
   useMotionValue,
@@ -14,6 +15,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import officeImage from "@/assets/talentiser-office.jpg";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Award } from "lucide-react";
+import { TalentNetwork } from "@/components/site/TalentNetwork";
+import { DepthSurface } from "@/components/site/DepthSurface";
+import { Footer } from "@/components/site/Footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -98,11 +102,12 @@ const blogs = [
 function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const reduced = useReducedMotion();
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 50, filter: "blur(8px)" }}
-      animate={inView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+      initial={reduced ? false : { opacity: 0, y: 35 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.9, delay, ease }}
       className={className}
     >
@@ -114,13 +119,14 @@ function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; 
 function SplitWords({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
+  const reduced = useReducedMotion();
   return (
     <span ref={ref} className={className.replace("text-gradient", "text-primary")}>
       {text.split(" ").map((w, i) => (
         <span key={i} className="inline-block overflow-hidden pb-2 align-bottom [perspective:600px]">
           <motion.span
             className="inline-block origin-bottom"
-            initial={{ y: "110%", rotateX: -80, rotate: 4 }}
+            initial={reduced ? false : { y: "110%", rotateX: -65 }}
             animate={inView ? { y: 0, rotateX: 0, rotate: 0 } : {}}
             transition={{ duration: 0.9, delay: delay + i * 0.07, ease }}
           >
@@ -156,7 +162,8 @@ function Parallax({ children, offset = 80, className = "" }: { children: ReactNo
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], [offset, -offset]);
-  return <motion.div ref={ref} style={{ y }} className={className}>{children}</motion.div>;
+  const reduced = useReducedMotion();
+  return <motion.div ref={ref} style={reduced ? {} : { y }} className={className}>{children}</motion.div>;
 }
 
 function Counter({ to, suffix, decimals = 0 }: { to: number; suffix: string; decimals?: number }) {
@@ -177,6 +184,7 @@ function Counter({ to, suffix, decimals = 0 }: { to: number; suffix: string; dec
 }
 
 function Magnetic({ children }: { children: ReactNode }) {
+  const reduced = useReducedMotion();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const sx = useSpring(x, { stiffness: 200, damping: 15 });
@@ -185,6 +193,7 @@ function Magnetic({ children }: { children: ReactNode }) {
     <motion.div
       style={{ x: sx, y: sy }}
       onMouseMove={(e) => {
+        if (reduced) return;
         const r = e.currentTarget.getBoundingClientRect();
         x.set((e.clientX - r.left - r.width / 2) * 0.35);
         y.set((e.clientY - r.top - r.height / 2) * 0.35);
@@ -244,6 +253,7 @@ function Hero() {
     >
       <motion.img style={reduceMotion ? {} : { y: imgY, scale: imgScale }} src={officeImage} alt="Professionals collaborating in a contemporary office" width={1920} height={1024} fetchPriority="high" className="hero-photo absolute inset-0 -z-20 h-full w-full object-cover" />
       <div className="hero-wash absolute inset-0 -z-10" />
+      <TalentNetwork />
       <motion.div style={reduceMotion ? {} : { y: textY, opacity: textOpacity }} className="relative mx-auto w-full max-w-6xl px-6 pb-14 pt-36 md:pb-20 md:pt-44">
         <motion.p initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="mb-8 flex max-w-lg items-center gap-3 text-xs font-semibold text-muted-foreground">
           <Award className="h-5 w-5 shrink-0 text-primary" />
@@ -296,46 +306,24 @@ function Marquee() {
 }
 
 function TiltCard({ s, i }: { s: (typeof services)[number]; i: number }) {
-  const rx = useMotionValue(0);
-  const ry = useMotionValue(0);
-  const srx = useSpring(rx, { stiffness: 150, damping: 15 });
-  const sry = useSpring(ry, { stiffness: 150, damping: 15 });
-  const [pos, setPos] = useState({ x: 50, y: 50 });
   return (
-    <Reveal delay={(i % 3) * 0.12}>
-      <motion.div
-        style={{ rotateX: srx, rotateY: sry, transformPerspective: 1000 }}
-        onMouseMove={(e) => {
-          const r = e.currentTarget.getBoundingClientRect();
-          const px = (e.clientX - r.left) / r.width;
-          const py = (e.clientY - r.top) / r.height;
-          ry.set((px - 0.5) * 14);
-          rx.set(-(py - 0.5) * 14);
-          setPos({ x: px * 100, y: py * 100 });
-        }}
-        onMouseLeave={() => {
-          rx.set(0);
-          ry.set(0);
-        }}
-        className="group relative h-full overflow-hidden rounded-3xl border bg-card p-8"
-      >
-        <div
-          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          style={{ background: `radial-gradient(400px circle at ${pos.x}% ${pos.y}%, color-mix(in oklab, var(--primary) 18%, transparent), transparent 60%)` }}
-        />
-        <div className="relative flex items-start justify-between">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-paper transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110">
-            <span className="text-2xl text-paper-foreground">{s.icon}</span>
+    <Reveal delay={(i % 3) * 0.1} className="h-full">
+      <DepthSurface className="group rounded-lg border bg-card p-7 md:p-8">
+        <div className="depth-content">
+          <div className="flex items-start justify-between">
+            <div className="depth-icon grid h-12 w-12 place-items-center rounded-lg bg-primary text-primary-foreground transition-transform duration-500 group-hover:rotate-[-6deg]">
+              <span className="text-2xl">{s.icon}</span>
+            </div>
+            <span className="text-[10px] font-bold uppercase text-primary">{s.tag}</span>
           </div>
-          <span className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">{s.tag}</span>
+          <p className="mt-8 font-display text-sm text-muted-foreground">0{i + 1}</p>
+          <h3 className="mt-1 text-3xl">{s.title}</h3>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{s.text}</p>
+          <Button asChild variant="link" className="mt-6 h-auto p-0 text-xs font-bold uppercase">
+            <Link to="/services">Explore <ArrowUpRight className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" /></Link>
+          </Button>
         </div>
-        <p className="relative mt-8 font-display text-sm text-muted-foreground">0{i + 1}</p>
-        <h3 className="relative mt-1 text-3xl">{s.title}</h3>
-        <p className="relative mt-4 text-sm leading-relaxed text-muted-foreground">{s.text}</p>
-        <Link to="/services" className="relative mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary">
-          Explore <span className="transition-transform duration-300 group-hover:translate-x-2">→</span>
-        </Link>
-      </motion.div>
+      </DepthSurface>
     </Reveal>
   );
 }
@@ -371,11 +359,11 @@ function Stats() {
           <p className="eyebrow">About us</p>
           <h2 className="mt-4 max-w-2xl text-5xl md:text-6xl"><SplitWords text="Benefits of collaborating with us" /></h2>
         </Reveal>
-        <div className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-3xl bg-paper-foreground/10 lg:grid-cols-4">
+        <div className="mt-16 grid grid-cols-2 gap-px bg-paper-foreground/10 lg:grid-cols-4">
           {stats.map((s, i) => (
-            <Reveal key={s.l} delay={i * 0.1} className="bg-paper p-8">
+            <Reveal key={s.l} delay={i * 0.1} className="bg-paper p-5 sm:p-8">
               <motion.div initial={{ rotateY: -70, opacity: 0 }} whileInView={{ rotateY: 0, opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1, delay: i * 0.12, ease }} whileHover={{ y: -6, rotateX: 8 }} style={{ transformPerspective: 900 }}>
-                <p className="font-display text-6xl font-light md:text-7xl">
+                <p className="font-display text-5xl font-light sm:text-6xl lg:text-7xl">
                   <Counter to={s.n} suffix={s.s} decimals={s.d ?? 0} />
                 </p>
                 <p className="mt-3 text-sm font-semibold uppercase tracking-widest opacity-60">{s.l}</p>
@@ -477,7 +465,7 @@ function Process() {
               style={{ transformPerspective: 1000, transformOrigin: "left center" }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, ease }}
-              className="group relative mb-6 rounded-3xl border bg-card p-6 transition-colors hover:border-primary"
+              className="group relative mb-6 rounded-lg border bg-card p-6 shadow-glow transition-colors hover:border-primary"
             >
               <span className="absolute -left-[34px] top-8 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
               <p className="font-display text-5xl font-light text-muted-foreground transition-colors group-hover:text-primary">0{i + 1}</p>
@@ -508,9 +496,10 @@ function Testimonials() {
           <AnimatePresence mode="wait">
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -40, filter: "blur(10px)" }}
+              initial={{ opacity: 0, rotateX: -12, y: 20 }}
+              animate={{ opacity: 1, rotateX: 0, y: 0 }}
+              exit={{ opacity: 0, rotateX: 12, y: -20 }}
+              style={{ transformPerspective: 1200 }}
               transition={{ duration: 0.7, ease }}
               className="relative"
             >
@@ -592,13 +581,15 @@ function Blog() {
       <div className="mt-12 grid gap-6 md:grid-cols-3">
         {blogs.map((b, i) => (
           <Reveal key={b.t} delay={i * 0.12}>
+            <DepthSurface className="rounded-lg bg-card pb-6">
             <a href={b.href} target="_blank" rel="noreferrer" className="group block">
-              <div className="overflow-hidden rounded-3xl">
+              <div className="overflow-hidden rounded-t-lg">
                 <img src={b.img} alt={b.t} loading="lazy" className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-110" />
               </div>
-              <p className="mt-5 text-xs uppercase tracking-widest text-muted-foreground">Valentina · {b.d}</p>
-              <h3 className="mt-2 text-xl leading-snug transition-colors group-hover:text-primary">{b.t}</h3>
+              <p className="mx-5 mt-5 text-xs uppercase text-muted-foreground">Valentina · {b.d}</p>
+              <h3 className="mx-5 mt-2 text-xl leading-snug transition-colors group-hover:text-primary">{b.t}</h3>
             </a>
+            </DepthSurface>
           </Reveal>
         ))}
       </div>
@@ -608,35 +599,26 @@ function Blog() {
 
 function Cta() {
   return (
-    <section className="px-4 pb-6">
-      <motion.div
-        initial={{ clipPath: "inset(20% 10% 20% 10% round 3rem)" }}
-        whileInView={{ clipPath: "inset(0% 0% 0% 0% round 2rem)" }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, ease }}
-        className="grain relative overflow-hidden bg-gradient-primary px-6 py-28 text-center text-primary-foreground"
-      >
-        <Parallax offset={40}><h2 className="mx-auto max-w-4xl text-5xl font-light md:text-8xl">
-          <SplitWords text="Let's Elevate Your" /> <span className="italic"><SplitWords text="Hiring Strategy" delay={0.25} /></span> <SplitWords text="Together" delay={0.45} />
-        </h2></Parallax>
-        <div className="mt-12">
-          <Magnetic>
-            <Link to="/contact" className="inline-block rounded-full bg-background px-10 py-5 text-lg font-bold text-foreground transition-transform hover:scale-105">
-              Connect with us ↗
-            </Link>
-          </Magnetic>
-        </div>
-      </motion.div>
-      <footer className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-2 py-8 text-sm text-muted-foreground md:flex-row">
-        <p>© {new Date().getFullYear()} Talentiser. All rights reserved.</p>
-        <p className="font-display italic">India's leading recruitment firm.</p>
-      </footer>
+    <section className="relative overflow-hidden border-t bg-primary py-20 text-primary-foreground md:py-28">
+      <div className="mx-auto max-w-6xl px-6 text-center">
+        <Reveal>
+          <h2 className="mx-auto max-w-4xl text-5xl font-light leading-tight md:text-7xl">Let’s Elevate Your <span className="italic">Hiring Strategy</span> Together.</h2>
+          <div className="mt-10">
+            <Magnetic>
+              <Button asChild size="lg" variant="secondary" className="h-12 rounded-full px-8">
+                <a href="https://talentiser.com/contact-us/">Connect with us <ArrowUpRight /></a>
+              </Button>
+            </Magnetic>
+          </div>
+        </Reveal>
+      </div>
     </section>
   );
 }
 
 function Index() {
   return (
+    <MotionConfig reducedMotion="user">
     <main className="relative overflow-x-clip">
       <ScrollProgress />
       <Hero />
@@ -651,5 +633,7 @@ function Index() {
       <Blog />
       <Cta />
     </main>
+    <Footer />
+    </MotionConfig>
   );
 }
