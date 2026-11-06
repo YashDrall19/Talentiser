@@ -18,7 +18,7 @@ export function DepthSurface({ children, className = "" }: { children: ReactNode
         y.set(((event.clientX - rect.left) / rect.width - 0.5) * 9);
       }}
       onPointerLeave={() => { x.set(0); y.set(0); }}
-      whileHover={reduced ? undefined : { y: -5 }}
+      whileHover={reduced ? {} : { y: -5 }}
       transition={{ type: "spring", stiffness: 190, damping: 24 }}
     >
       {children}
