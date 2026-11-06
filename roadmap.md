@@ -1,4 +1,6 @@
 # Tasks
+- [x] Remove the opening image sculpture and motion while preserving left-text effects.
+- [x] Speed up About counters and stabilize testimonial transitions; verify desktop and mobile.
 - [x] Add professional homepage 3D effects and motion, respecting reduced-motion preferences.
 - [x] Build a complete footer with verified Talentiser website details.
 - [x] Verify homepage interactions, both themes, and desktop/mobile layouts.

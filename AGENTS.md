@@ -34,6 +34,7 @@ use the editor.
 - Store only the browser's visual theme preference locally; website content remains independent of browser storage.
 - Use semantic CSS tokens for both themes and solid-color headline text; this avoids nested gradient clipping artifacts during animation.
 - Use overflow-x-clip rather than overflow-x-hidden on the homepage wrapper so horizontal animation stays contained without trapping sticky sections in a scroll container.
-- Load Three.js inside the homepage sculpture's effect and dispose its resources on unmount; this keeps SSR browser-safe and avoids GPU leaks.
+- Keep the homepage photograph static and apply opening 3D motion only to the text; this keeps the image unobstructed.
+- Stack testimonials in shared grid tracks and animate opacity only; this reserves the longest quote's height and avoids text distortion or layout jumps.
 - Use DepthSurface for restrained pointer-driven 3D elevation and MotionConfig for reduced-motion support; this keeps homepage interactions consistent and accessible.
 - Keep verified company contact and office details in the homepage Footer component; this separates footer maintenance from animated page sections.
