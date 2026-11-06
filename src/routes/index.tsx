@@ -15,7 +15,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import officeImage from "@/assets/talentiser-office.jpg";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Award } from "lucide-react";
-import { TalentNetwork } from "@/components/site/TalentNetwork";
 import { DepthSurface } from "@/components/site/DepthSurface";
 import { Footer } from "@/components/site/Footer";
 
@@ -169,12 +168,13 @@ function Parallax({ children, offset = 80, className = "" }: { children: ReactNo
 function Counter({ to, suffix, decimals = 0 }: { to: number; suffix: string; decimals?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
+  const reduced = useReducedMotion();
   const [v, setV] = useState(0);
   useEffect(() => {
     if (!inView) return;
-    const c = animate(0, to, { duration: 2.2, ease: "easeOut", onUpdate: setV });
+    const c = animate(0, to, { duration: reduced ? 0 : 0.8, ease: "easeOut", onUpdate: setV });
     return () => c.stop();
-  }, [inView, to]);
+  }, [inView, to, reduced]);
   return (
     <span ref={ref}>
       {v.toFixed(decimals)}
@@ -231,8 +231,6 @@ function Hero() {
   const reduceMotion = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const imgScale = useTransform(scrollYProgress, [0, 1], [1.05, 1.2]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "-25%"]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const mx = useMotionValue(0);
@@ -251,9 +249,8 @@ function Hero() {
       onMouseLeave={() => { mx.set(0); my.set(0); }}
       className="hero-scene relative isolate overflow-hidden"
     >
-      <motion.img style={reduceMotion ? {} : { y: imgY, scale: imgScale }} src={officeImage} alt="Professionals collaborating in a contemporary office" width={1920} height={1024} fetchPriority="high" className="hero-photo absolute inset-0 -z-20 h-full w-full object-cover" />
+      <img src={officeImage} alt="Professionals collaborating in a contemporary office" width={1920} height={1024} fetchPriority="high" className="hero-photo absolute inset-0 -z-20 h-full w-full object-cover" />
       <div className="hero-wash absolute inset-0 -z-10" />
-      <TalentNetwork />
       <motion.div style={reduceMotion ? {} : { y: textY, opacity: textOpacity }} className="relative mx-auto w-full max-w-6xl px-6 pb-14 pt-36 md:pb-20 md:pt-44">
         <motion.p initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="mb-8 flex max-w-lg items-center gap-3 text-xs font-semibold text-muted-foreground">
           <Award className="h-5 w-5 shrink-0 text-primary" />
@@ -480,28 +477,26 @@ function Process() {
 
 function Testimonials() {
   const [i, setI] = useState(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
-    const t = setInterval(() => setI((p) => (p + 1) % testimonials.length), 6000);
-    return () => clearInterval(t);
-  }, []);
-  const t = testimonials[i] ?? testimonials[0];
-  if (!t) return null;
+    const timer = setTimeout(() => setI((p) => (p + 1) % testimonials.length), 6000);
+    return () => clearTimeout(timer);
+  }, [i]);
   return (
     <section className="grain relative overflow-hidden border-y bg-card py-32">
       <div className="mx-auto max-w-5xl px-6">
         <Eyebrow>Testimonials</Eyebrow>
         <h2 className="mt-6 text-5xl md:text-6xl">Our Happy Clients</h2>
-        <div className="relative mt-14 min-h-[320px]">
+        <div className="relative mt-14 grid min-h-[320px]">
           <span className="absolute -left-4 -top-16 font-display text-[12rem] leading-none text-primary/20">“</span>
-          <AnimatePresence mode="wait">
+          {testimonials.map((t, k) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, rotateX: -12, y: 20 }}
-              animate={{ opacity: 1, rotateX: 0, y: 0 }}
-              exit={{ opacity: 0, rotateX: 12, y: -20 }}
-              style={{ transformPerspective: 1200 }}
-              transition={{ duration: 0.7, ease }}
-              className="relative"
+              key={t.name}
+              initial={false}
+              animate={{ opacity: k === i ? 1 : 0 }}
+              transition={{ duration: reduced ? 0 : k === i ? 0.24 : 0.12, delay: reduced || k !== i ? 0 : 0.12, ease: "easeInOut" }}
+              aria-hidden={k !== i}
+              className={`relative col-start-1 row-start-1 self-start ${k === i ? "" : "pointer-events-none select-none"}`}
             >
               <p className="font-display text-2xl font-light leading-snug md:text-4xl">{t.q}</p>
               <div className="mt-10 flex items-center gap-4">
@@ -512,21 +507,21 @@ function Testimonials() {
                 </div>
               </div>
             </motion.div>
-          </AnimatePresence>
+          ))}
         </div>
         <div className="mt-10 flex gap-2">
           {testimonials.map((_, k) => (
-            <button key={k} aria-label={`Testimonial ${k + 1}`} onClick={() => setI(k)} className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+            <Button type="button" variant="ghost" key={k} aria-label={`Testimonial ${k + 1}`} aria-pressed={k === i} onClick={() => setI(k)} className="h-1.5 flex-1 overflow-hidden rounded-full bg-border p-0 hover:bg-border">
               {k === i && (
                 <motion.span
                   className="block h-full bg-gradient-primary"
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
-                  transition={{ duration: 6, ease: "linear" }}
+                  transition={{ duration: reduced ? 0 : 6, ease: "linear" }}
                 />
               )}
               {k < i && <span className="block h-full bg-primary/60" />}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
