@@ -1,4 +1,7 @@
 # Tasks
+- [x] Remove the Home link from the navigation (logo already links home).
+- [x] Build the Services page mirroring talentiser.com/services.
+- [ ] Remaining new pages — waiting on the user to list them (message mentioned 5 pages, only Services was described).
 - [x] Remove the opening image sculpture and motion while preserving left-text effects.
 - [x] Speed up About counters and stabilize testimonial transitions; verify desktop and mobile.
 - [x] Add professional homepage 3D effects and motion, respecting reduced-motion preferences.

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 
 const links = [
-  { to: "/", label: "Home" },
   { to: "/about", label: "About" },
   { to: "/services", label: "Services" },
   { to: "/blog", label: "Blog" },
